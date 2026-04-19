@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CineX</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+  <div id="app">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="logo">Cine<span>X</span></div>
+      <div class="nav-steps">
+        <div class="step active" id="s1">1</div>
+        <div class="step-line"></div>
+        <div class="step" id="s2">2</div>
+        <div class="step-line"></div>
+        <div class="step" id="s3">3</div>
+        <div class="step-line"></div>
+        <div class="step" id="s4">4</div>
+      </div>
+    </nav>
+
+    <!-- Browse Screen -->
+    <div id="screen-browse">
+      <input type="text" id="search-input" placeholder="Search movies..." oninput="filterMovies()" />
+      <div class="genre-pills">
+        <button class="pill active" onclick="setGenre(this, 'All')">All</button>
+        <button class="pill" onclick="setGenre(this, 'Action')">Action</button>
+        <button class="pill" onclick="setGenre(this, 'Drama')">Drama</button>
+        <button class="pill" onclick="setGenre(this, 'Sci-Fi')">Sci-Fi</button>
+        <button class="pill" onclick="setGenre(this, 'Comedy')">Comedy</button>
+        <button class="pill" onclick="setGenre(this, 'Horror')">Horror</button>
+      </div>
+      <div class="movies-grid" id="movies-grid"></div>
+    </div>
+
+    <!-- Showtimes Screen -->
+    <div id="screen-shows" style="display:none;">
+      <button class="back-btn" onclick="goTo('browse')">← Back</button>
+      <div class="movie-hero">
+        <div class="hero-poster" id="hero-emoji"></div>
+        <div class="hero-info">
+          <h2 id="hero-title"></h2>
+          <p id="hero-duration"></p>
+          <p id="hero-rating">★ <span id="hero-rating-val"></span></p>
+        </div>
+      </div>
+      <p class="section-label">Select a date</p>
+      <div class="date-tabs" id="date-tabs"></div>
+      <div id="showtimes-list"></div>
+    </div>
+
+    <!-- Seats Screen -->
+    <div id="screen-seats" style="display:none;">
+      <button class="back-btn" onclick="goTo('shows')">← Back</button>
+      <p class="section-label" style="text-align:center;">Pick your seats</p>
+      <p id="seats-subtitle" style="text-align:center; font-size:13px; color:#888; margin-bottom:1rem;"></p>
+      <p style="text-align:center; font-size:11px; color:#aaa; margin-bottom:4px;">SCREEN</p>
+      <div class="cinema-screen"></div>
+      <div class="seat-grid" id="seat-grid"></div>
+      <div class="seat-legend">
+        <div class="legend-item"><div class="legend-seat l-avail"></div> Available</div>
+        <div class="legend-item"><div class="legend-seat l-prem"></div> Premium</div>
+        <div class="legend-item"><div class="legend-seat l-sel"></div> Selected</div>
+        <div class="legend-item"><div class="legend-seat l-taken"></div> Taken</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-row"><span>Selected seats</span><span id="sel-seats-label">—</span></div>
+        <div class="summary-row"><span>Ticket price</span><span id="sel-price-label">—</span></div>
+        <div class="summary-row total"><span>Total</span><span id="sel-total-label">—</span></div>
+      </div>
+      <button class="proceed-btn" id="proceed-btn" onclick="goTo('payment')">Proceed to Payment</button>
+    </div>
+
+  <!-- Payment Screen -->
+    <div id="screen-payment" style="display:none;">
+      <button class="back-btn" onclick="goTo('seats')">← Back</button>
+      <p class="section-label">Payment</p>
+
+      <div class="pay-methods">
+        <button class="pay-method active" onclick="setPayMethod(this, 'card')">💳 Card</button>
+        <button class="pay-method" onclick="setPayMethod(this, 'upi')">📱 UPI</button>
+        <button class="pay-method" onclick="setPayMethod(this, 'netbanking')">🏦 Net Banking</button>
+      </div>
+
+      <!-- Card Form -->
+      <div id="form-card">
+        <div class="form-group">
+          <label class="form-label">Name on card</label>
+          <input class="form-input" placeholder="John Doe" id="card-name" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Card number</label>
+          <input class="form-input" placeholder="1234 5678 9012 3456" maxlength="19" id="card-num" oninput="formatCard(this)" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Expiry</label>
+            <input class="form-input" placeholder="MM/YY" maxlength="5" id="card-exp" oninput="formatExpiry(this)" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">CVV</label>
+            <input class="form-input" placeholder="•••" maxlength="3" type="password" />
+          </div>
+        </div>
+      </div>
+
+      <!-- UPI Form -->
+      <div id="form-upi" style="display:none;">
+        <div class="upi-apps">
+          <div class="upi-app" onclick="selectUpiApp(this)">
+            <div class="upi-logo" style="background:#4CAF50;">G</div>
+            <span>GPay</span>
+          </div>
+          <div class="upi-app" onclick="selectUpiApp(this)">
+            <div class="upi-logo" style="background:#6739B7;">P</div>
+            <span>PhonePe</span>
+          </div>
+          <div class="upi-app" onclick="selectUpiApp(this)">
+            <div class="upi-logo" style="background:#00BAF2;">P</div>
+            <span>Paytm</span>
+          </div>
+          <div class="upi-app" onclick="selectUpiApp(this)">
+            <div class="upi-logo" style="background:#F37254;">B</div>
+            <span>BHIM</span>
+          </div>
+        </div>
+        <div class="upi-divider">or enter UPI ID manually</div>
+        <div class="form-group">
+          <label class="form-label">UPI ID</label>
+          <input class="form-input" placeholder="yourname@upi" id="upi-id" />
+        </div>
+      </div>
+
+      <!-- Net Banking Form -->
+      <div id="form-netbanking" style="display:none;">
+        <div class="section-label" style="margin-bottom:0.75rem;">Select your bank</div>
+        <div class="bank-grid">
+          <div class="bank-item" onclick="selectBank(this)">
+            <div class="bank-logo" style="background:#003087; color:#fff;">SBI</div>
+            <span>State Bank</span>
+          </div>
+          <div class="bank-item" onclick="selectBank(this)">
+            <div class="bank-logo" style="background:#E31837; color:#fff;">HDFC</div>
+            <span>HDFC Bank</span>
+          </div>
+          <div class="bank-item" onclick="selectBank(this)">
+            <div class="bank-logo" style="background:#F7A800; color:#fff;">ICICI</div>
+            <span>ICICI Bank</span>
+          </div>
+          <div class="bank-item" onclick="selectBank(this)">
+            <div class="bank-logo" style="background:#003399; color:#fff;">AXIS</div>
+            <span>Axis Bank</span>
+          </div>
+          <div class="bank-item" onclick="selectBank(this)">
+            <div class="bank-logo" style="background:#D01717; color:#fff;">KOT</div>
+            <span>Kotak</span>
+          </div>
+          <div class="bank-item" onclick="selectBank(this)">
+            <div class="bank-logo" style="background:#00518B; color:#fff;">PNB</div>
+            <span>Punjab Natl</span>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:1rem;">
+          <label class="form-label">Or enter bank name</label>
+          <input class="form-input" placeholder="Search your bank..." id="bank-search" />
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="pay-summary">
+        <div class="pay-summary-title">Order Summary</div>
+        <div class="pay-summary-row">
+          <span id="pay-movie-label"></span>
+          <span id="pay-seats-label"></span>
+        </div>
+        <div class="pay-summary-row">
+          <span id="pay-show-label"></span>
+        </div>
+        <div class="pay-summary-row total">
+          <span>Total</span>
+          <span id="pay-total-label"></span>
+        </div>
+      </div>
+
+      <button class="pay-btn" onclick="startPayment()">Pay &amp; Confirm →</button>
+    </div>
+
+    <!-- Confirmation Screen -->
+    <div id="screen-confirm" style="display:none;">
+      <div class="confirm-wrap">
+        <div class="confirm-icon">✓</div>
+        <h2 class="confirm-title">Booking Confirmed!</h2>
+        <p class="confirm-sub">Show this QR code at the theatre entrance</p>
+        <div class="qr-box">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=CineX-Booking" 
+               alt="QR Code" width="140" height="140" />
+        </div>
+        <div class="ticket-card">
+          <div class="ticket-row">
+            <span class="tk-label">Movie</span>
+            <span class="tk-val" id="ck-movie"></span>
+          </div>
+          <div class="ticket-row">
+            <span class="tk-label">Date & Time</span>
+            <span class="tk-val" id="ck-dt"></span>
+          </div>
+          <div class="ticket-row">
+            <span class="tk-label">Theatre</span>
+            <span class="tk-val" id="ck-theatre"></span>
+          </div>
+          <hr class="divider-dashed" />
+          <div class="ticket-row">
+            <span class="tk-label">Seats</span>
+            <span class="tk-val" id="ck-seats"></span>
+          </div>
+          <div class="ticket-row">
+            <span class="tk-label">Total Paid</span>
+            <span class="tk-val" id="ck-total"></span>
+          </div>
+        </div>
+        <button class="download-btn">⬇ Download Ticket</button>
+        <button class="restart-btn" onclick="restartApp()">Book Another Ticket</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
